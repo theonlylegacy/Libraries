@@ -1999,7 +1999,7 @@ do
             Value = Info.Multi and {};
             Multi = Info.Multi;
             Type = 'Dropdown';
-            SpecialType = Info.SpecialType; -- can be either 'Player' or 'Team'
+            SpecialType = Info.SpecialType;
             Callback = Info.Callback or function(Value) end;
         };
 
@@ -2091,7 +2091,7 @@ do
         if type(Info.Tooltip) == 'string' then
             Library:AddToolTip(Info.Tooltip, DropdownOuter)
         end
-
+        
         local MAX_DROPDOWN_ITEMS = 8;
 
         local ListOuter = Library:Create('Frame', {
@@ -2269,6 +2269,8 @@ do
                                 for _, OtherButton in next, Buttons do
                                     OtherButton:UpdateButton();
                                 end;
+
+                                Dropdown:CloseDropdown();
                             end;
 
                             Table:UpdateButton();
@@ -2294,7 +2296,7 @@ do
             ListOuter.Size = UDim2.new(1, -8, 0, Y);
             Scrolling.CanvasSize = UDim2.new(0, 0, 0, (Count * 20) + 1);
 
-            -- ListOuter.Size = UDim2.new(1, -8, 0, (#Values * 20) + 2);
+            ListOuter.Size = UDim2.new(1, -8, 0, (#Values * 20) + 2);
         end;
 
         function Dropdown:OpenDropdown()
@@ -2354,9 +2356,7 @@ do
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
 
-                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
-                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
-
+                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
                     Dropdown:CloseDropdown();
                 end;
             end;
@@ -2859,6 +2859,14 @@ function Library:CreateWindow(...)
             Parent = TabFrame;
         });
 
+        local Middle = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 0, 0, 0);
+            Size = UDim2.new(1, 0, 0, 507);
+            ZIndex = 2;
+            Parent = TabFrame;
+        });
+
         Library:Create('UIListLayout', {
             Padding = UDim.new(0, 8);
             FillDirection = Enum.FillDirection.Vertical;
@@ -2904,7 +2912,7 @@ function Library:CreateWindow(...)
                 BorderColor3 = Library.OutlineColor;
                 Size = UDim2.new(1, 0, 0, 507);
                 ZIndex = 2;
-                Parent = Info.Side == 1 and LeftSide or RightSide;
+                Parent = Info.Side == 1 and LeftSide or Info.Side == 2 and RightSide or Middle;
             });
 
             Library:AddToRegistry(BoxOuter, {
@@ -2990,6 +2998,10 @@ function Library:CreateWindow(...)
 
         function Tab:AddRightGroupbox(Name)
             return Tab:AddGroupbox({ Side = 2; Name = Name; });
+        end;
+
+        function Tab:AddMiddleGroupbox(Name)
+            return Tab:AddGroupbox({ Side = 3; Name = Name; });
         end;
 
         function Tab:AddTabbox(Info)
