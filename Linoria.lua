@@ -1122,13 +1122,13 @@ do
 
                     Event:Disconnect();
                 end);
-            elseif Input.UserInputType == Enum.UserInputType.MouseButton2 and not Library:MouseIsOverOpenedFrame() then
+            elseif Input.UserInputType == Enum.UserInputType.MouseButton2 and not Library:MouseIsOverOpenedFrame() and not Picking then
                 ModeSelectOuter.Visible = true;
             end;
         end);
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
-            if (not Picking) and (not InputService:GetFocusedTextBox()) then
+            if not Picking and not InputService:GetFocusedTextBox() then
                 if KeyPicker.Mode == 'Toggle' then
                     local Key = KeyPicker.Value;
 
