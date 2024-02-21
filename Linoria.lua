@@ -2353,7 +2353,7 @@ do
             if Info.SpecialType ~= 'Player' then
                 ItemList.Text = (Str == '' and '...' or Str);
             else
-                ItemList.Text = 'Players: ' .. tostring(#Players:GetPlayers())
+                ItemList.Text = 'Player List - ' .. tostring(#Players:GetPlayers()) .. ' Players'
             end
         end;
 
