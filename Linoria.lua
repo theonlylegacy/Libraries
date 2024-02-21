@@ -2350,7 +2350,11 @@ do
                 Str = Dropdown.Value or '';
             end;
 
-            ItemList.Text = (Str == '' and '...' or Str);
+            if Info.SpecialType ~= 'Player' then
+                ItemList.Text = (Str == '' and '...' or Str);
+            else
+                ItemList.Text = 'Players: ' .. tostring(#Players:GetPlayers())
+            end
         end;
 
         function Dropdown:GetActiveValues()
