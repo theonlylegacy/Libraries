@@ -2563,7 +2563,7 @@ do
                 if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
                     if Info.SpecialType ~= 'Player' then
                         Dropdown:CloseDropdown();
-                    end
+                    end;
                 end;
             end;
         end);
@@ -2571,18 +2571,14 @@ do
         InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 if Info.SpecialType == 'Player' then
-                    if Library.List and Library.Visible then
+                    if Library.List then
                         Dropdown:OpenDropdown();
                     else
                         Dropdown:CloseDropdown();
                     end;
                 end;
-
-                if (not Library.Visible) then
-                    Dropdown:CloseDropdown();
-                end;
-            end
-        end)
+            end;
+        end);
 
         Dropdown:BuildDropdownList();
         Dropdown:Display();
@@ -2790,8 +2786,6 @@ do
     Library.Watermark = WatermarkOuter;
     Library.WatermarkText = WatermarkLabel;
     Library:MakeDraggable(Library.Watermark);
-
-
 
     local KeybindOuter = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0, 0.5);
@@ -3081,7 +3075,6 @@ function Library:CreateWindow(...)
         ZIndex = 2;
         Parent = MainSectionInner;
     });
-    
 
     Library:AddToRegistry(TabContainer, {
         BackgroundColor3 = 'MainColor';
@@ -3620,73 +3613,43 @@ function Library:CreateWindow(...)
             end);
         end;
 
-        for _, Desc in next, Outer:GetDescendants() do
-            local Properties = {};
+        for _, Desc in next, ScreenGui:GetDescendants() do
+            if Desc ~= Outer then 
+                local Properties = {};
 
-            if Desc:IsA('ImageLabel') then
-                table.insert(Properties, 'ImageTransparency');
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
-                table.insert(Properties, 'TextTransparency');
-            elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('UIStroke') then
-                table.insert(Properties, 'Transparency');
-            end;
+                if Desc:IsA('ImageLabel') then
+                    table.insert(Properties, 'ImageTransparency');
+                    table.insert(Properties, 'BackgroundTransparency');
+                elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
+                    table.insert(Properties, 'TextTransparency');
+                elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
+                    table.insert(Properties, 'BackgroundTransparency');
 
-            local Cache = TransparencyCache[Desc];
-
-            if (not Cache) then
-                Cache = {};
-                TransparencyCache[Desc] = Cache;
-            end;
-
-            for _, Prop in next, Properties do
-                if not Cache[Prop] then
-                    Cache[Prop] = Desc[Prop];
+                    if Desc:IsA('ScrollingFrame') then
+                        table.insert(Properties, 'ScrollBarImageTransparency');
+                    end;
+                elseif Desc:IsA('UIStroke') then
+                    table.insert(Properties, 'Transparency');
                 end;
-
-                if Cache[Prop] == 1 then
-                    continue;
+    
+                local Cache = TransparencyCache[Desc];
+    
+                if (not Cache) then
+                    Cache = {};
+                    TransparencyCache[Desc] = Cache;
                 end;
+    
+                for _, Prop in next, Properties do
+                    if not Cache[Prop] then
+                        Cache[Prop] = Desc[Prop];
+                    end;
+    
+                    if Cache[Prop] == 1 then
+                        continue;
+                    end;
 
-                Desc[Prop] = Toggled and 1 or Cache[Prop];
-            end;
-        end;
-
-        RunService.RenderStepped:Wait()
-
-        for _, Desc in next, Outer:GetDescendants() do
-            local Properties = {};
-
-            if Desc:IsA('ImageLabel') then
-                table.insert(Properties, 'ImageTransparency');
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('TextLabel') or Desc:IsA('TextBox') then
-                table.insert(Properties, 'TextTransparency');
-            elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
-                table.insert(Properties, 'BackgroundTransparency');
-            elseif Desc:IsA('UIStroke') then
-                table.insert(Properties, 'Transparency');
-            end;
-
-            local Cache = TransparencyCache[Desc];
-
-            if (not Cache) then
-                Cache = {};
-                TransparencyCache[Desc] = Cache;
-            end;
-
-            for _, Prop in next, Properties do
-                if not Cache[Prop] then
-                    Cache[Prop] = Desc[Prop];
+                    TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), { [Prop] = Toggled and Cache[Prop] or 1 }):Play();
                 end;
-
-                if Cache[Prop] == 1 then
-                    continue;
-                end;
-
-                TweenService:Create(Desc, TweenInfo.new(FadeTime, Enum.EasingStyle.Linear), { [Prop] = Toggled and Cache[Prop] or 1 }):Play();
             end;
         end;
 
