@@ -2572,7 +2572,9 @@ do
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 if Info.SpecialType == 'Player' then
                     if Library.List then
-                        Dropdown:OpenDropdown();
+                        if Library.Visible then
+                            Dropdown:OpenDropdown();
+                        end;
                     else
                         Dropdown:CloseDropdown();
                     end;
