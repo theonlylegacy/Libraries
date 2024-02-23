@@ -44,6 +44,7 @@ local Library = {
 
     Signals = {};
     List = false;
+    Visible = false;
     ScreenGui = ScreenGui;
 };
 
@@ -2569,13 +2570,19 @@ do
 
         InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                if Info.SpecialType == 'Player' and Library.List then
-                    Dropdown:OpenDropdown()
-                elseif Info.SpecialType == 'Player' and (not Library.List) then
-                    Dropdown:CloseDropdown()
-                end
-            end
-        end)
+                if Info.SpecialType == 'Player' then
+                    if Library.List and Library.Visible then
+                        Dropdown:OpenDropdown();
+                    else
+                        Dropdown:CloseDropdown();
+                    end;
+                end;
+
+                if (not Library.Visible) then
+                    Dropdown:CloseDropdown();
+                end;
+            end:
+        end):
 
         Dropdown:BuildDropdownList();
         Dropdown:Display();
@@ -3210,10 +3217,10 @@ function Library:CreateWindow(...)
             TabFrame.Visible = true;
             
             if Tab.Groupboxes["List"] then
-                Library.List = true
+                Library.List = true;
             else
-                Library.List = false
-            end
+                Library.List = false;
+            end;
         end;
 
         function Tab:HideTab()
@@ -3561,6 +3568,8 @@ function Library:CreateWindow(...)
         if Fading then
             return;
         end;
+
+        Library.Visible = (not Library.Visible)
 
         local FadeTime = Config.MenuFadeTime;
         Fading = true;
