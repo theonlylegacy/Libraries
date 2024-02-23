@@ -2581,8 +2581,8 @@ do
                 if (not Library.Visible) then
                     Dropdown:CloseDropdown();
                 end;
-            end:
-        end):
+            end
+        end)
 
         Dropdown:BuildDropdownList();
         Dropdown:Display();
