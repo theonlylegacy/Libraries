@@ -432,3 +432,4 @@ spawn(function()
 end)
 
 getgenv().Legacy = Legacy
+return Legacy
