@@ -1,22 +1,22 @@
 local Legacy = {
 	Settings = {
-		Name = true,
-		Tool = true,
-		Flag = true,
+		Name = false,
+		Tool = false,
+		Flag = false,
 
 		Health = {
-			Text = true,
-			Bar = true,
+			Text = false,
+			Bar = false,
 		},
 
 		Tracer = {
-			Enabled = true,
-			AttachSquare = true,
+			Enabled = false,
+			AttachSquare = false,
 		},
 
 		Square = {
-			Enabled = true,
-			Fill = true,
+			Enabled = false,
+			Fill = false,
 		},
 
 		Color = Color3.fromRGB(255, 255, 255),
