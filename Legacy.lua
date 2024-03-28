@@ -288,7 +288,7 @@ function Legacy:UpdateObjects(ObjectTable)
 						Lines["HealthOutline"].Thickness = 3
 						Lines["HealthOutline"].Color = self.Settings.OutlineColor
 						Lines["HealthOutline"].From = Vector2_new(XMinimal - 5, YMaximal)
-						Lines["HealthOutline"].To = Vector2_new(XMinimal - 5, YMaximal - Length)
+						Lines["HealthOutline"].To = Vector2_new(XMinimal - 5, YMaximal - (YMaximal - YMinimal))
 					else
 						Lines["Health"].Visible = false
 						Lines["HealthOutline"].Visible = false
