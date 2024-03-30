@@ -26,6 +26,8 @@ local Legacy = {
 		HealthColor = Color3.fromRGB(25, 255, 25),
 	},
 
+	MainThread = nil,
+	Loaded = true,
 	Objects = {},
 }
 
@@ -420,8 +422,19 @@ function Legacy:UpdateObjects(ObjectTable)
 	end
 end
 
-spawn(function()
-	while true do
+local function Legacy:Unload()
+	self.Loaded = false
+
+	for _, ObjectTable in self.Objects do
+		self:RemoveObject(ObjectTable)
+	end
+
+	cancel(self.MainThread)
+	getgenv().Legacy = nil
+end
+
+Legacy.MainThread = spawn(function()
+	while true and Legacy.Loaded do
 		wait(0.03)
 		Viewport = Camera.ViewportSize
 
