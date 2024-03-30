@@ -2556,7 +2556,7 @@ do
             end;
         end);
 
-        InputService.InputBegan:Connect(function(Input)
+        table.insert(Library.signals, InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
 
@@ -2566,9 +2566,9 @@ do
                     end;
                 end;
             end;
-        end);
+        end));
 
-        InputService.InputBegan:Connect(function(Input)
+        table.insert(Library.signals, InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 if Info.SpecialType == 'Player' then
                     if Library.List then
@@ -2582,7 +2582,7 @@ do
                     end;
                 end;
             end;
-        end);
+        end));
 
         Dropdown:BuildDropdownList();
         Dropdown:Display();
