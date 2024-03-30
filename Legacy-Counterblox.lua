@@ -422,7 +422,7 @@ function Legacy:UpdateObjects(ObjectTable)
 	end
 end
 
-local function Legacy:Unload()
+function Legacy:Unload()
 	self.Loaded = false
 
 	for _, ObjectTable in self.Objects do
