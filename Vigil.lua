@@ -1619,7 +1619,7 @@ function library:Init(key)
             toggleDesignCorner.Name = "toggleDesignCorner"
             toggleDesignCorner.Parent = toggleDesign
 
-            toggleDesignGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(157, 115, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(106, 69, 181))}
+            toggleDesignGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(87, 190, 250)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(78, 180, 240))}
             toggleDesignGradient.Rotation = 90
             toggleDesignGradient.Name = "toggleDesignGradient"
             toggleDesignGradient.Parent = toggleDesign
@@ -3274,7 +3274,7 @@ function library:Init(key)
             sliderIndicatorStraint.Parent = sliderIndicator
             sliderIndicatorStraint.MaxSize = Vector2.new(392, 12)
 
-            sliderIndicatorGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(87, 190, 250)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(128, 94, 208))}
+            sliderIndicatorGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(87, 190, 250)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(78, 180, 240))}
             sliderIndicatorGradient.Rotation = 90
             sliderIndicatorGradient.Name = "sliderIndicatorGradient"
             sliderIndicatorGradient.Parent = sliderIndicator
