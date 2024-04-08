@@ -1732,7 +1732,7 @@ function library:Init(key)
             --
             function ToggleFunctions:AddKeybind(default_t)
                 callback_t = callback
-                default_t = default_t or Enum.KeyCode.P
+                default_t = default_t or "None"
                 
                 local keybind = Instance.new("TextButton")
                 local keybindCorner = Instance.new("UICorner")
@@ -1806,7 +1806,7 @@ function library:Init(key)
                     Return = "enter"
                 }
     
-                keybindButtonLabel.Text = Shortcuts[default_t.Name] or default_t.Name
+                keybindButtonLabel.Text = default_t ~= "None" and (Shortcuts[default_t.Name] or default_t.Name) or "None"
                 CreateTween("keybind", 0.08)
                 
                 local NewKeybindSize = TextService:GetTextSize(keybindButtonLabel.Text, keybindButtonLabel.TextSize, keybindButtonLabel.Font, Vector2.new(math.huge,math.huge))
@@ -1836,11 +1836,10 @@ function library:Init(key)
                     end
                 end)
     
-                local ChatTextBox = Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar
                 if UserInputService.WindowFocused then
                     UserInputService.InputBegan:Connect(function(c, p)
-                        if not p then
-                            if c.KeyCode.Name == ChosenKey and not ChatTextBox:IsFocused() then
+                        if not p and default_t ~= "None" then
+                            if c.KeyCode.Name == ChosenKey then
                                 On = not On
                                 local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
                                 local Transparency = On and 0 or 1
@@ -2069,12 +2068,10 @@ function library:Init(key)
                     ChosenKey = InputWait.KeyCode.Name
                 end
             end)
-
-            local ChatTextBox = Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar
             if UserInputService.WindowFocused then
                 UserInputService.InputBegan:Connect(function(c, p)
                     if not p then
-                        if c.KeyCode.Name == ChosenKey and not ChatTextBox:IsFocused() then
+                        if c.KeyCode.Name == ChosenKey then
                             callback(ChosenKey)
                             return
                         end
