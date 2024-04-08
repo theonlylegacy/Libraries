@@ -78,11 +78,11 @@ local library = {
     rank = "private"
 }
 
-coroutine.wrap(function()
+task.spawn(function()
     RunService.RenderStepped:Connect(function(v)
         library.fps =  math.round(1/v)
     end)
-end)()
+end)
 
 function library:RoundNumber(int, float)
     return tonumber(string.format("%." .. (int or 0) .. "f", float))
@@ -306,16 +306,16 @@ function library:Watermark(text)
 
     CreateTween("wm", 0.24)
     CreateTween("wm_2", 0.04)
-    coroutine.wrap(function()
+    task.spawn(function()
         TweenService:Create(edge, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
         TweenService:Create(edge, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
         TweenService:Create(background, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
         TweenService:Create(background, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
-        wait(.2)
+        task.wait(.2)
         TweenService:Create(bar, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-        wait(.1)
+        task.wait(.1)
         TweenService:Create(waterText, TweenTable["wm"], {TextTransparency = 0}):Play()
-    end)()
+    end)
 
     local WatermarkFunctions = {}
     function WatermarkFunctions:AddWatermark(text)
@@ -409,16 +409,16 @@ function library:Watermark(text)
         backgroundLayout.SortOrder = Enum.SortOrder.LayoutOrder
         backgroundLayout.VerticalAlignment = Enum.VerticalAlignment.Center
     
-        coroutine.wrap(function()
+        task.spawn(function()
             TweenService:Create(edge, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
             TweenService:Create(edge, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
             TweenService:Create(background, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
             TweenService:Create(background, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
-            wait(.2)
+            task.wait(.2)
             TweenService:Create(bar, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-            wait(.1)
+            task.wait(.1)
             TweenService:Create(waterText, TweenTable["wm"], {TextTransparency = 0}):Play()
-        end)()
+        end)
 
         local NewWatermarkFunctions = {}
         function NewWatermarkFunctions:Hide()
@@ -437,12 +437,12 @@ function library:Watermark(text)
     
             local NewSize = TextService:GetTextSize(waterText.Text, waterText.TextSize, waterText.Font, Vector2.new(math.huge, math.huge))
             waterText.Size = UDim2.new(0, NewSize.X + 8, 0, 24)
-            coroutine.wrap(function()
+            task.spawn(function()
                 TweenService:Create(edge, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
                 TweenService:Create(background, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
                 TweenService:Create(bar, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
                 TweenService:Create(waterText, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-            end)()
+            end)
     
             return NewWatermarkFunctions
         end
@@ -469,12 +469,12 @@ function library:Watermark(text)
         waterText.Text = new
 
         local NewSize = TextService:GetTextSize(waterText.Text, waterText.TextSize, waterText.Font, Vector2.new(math.huge, math.huge))
-        coroutine.wrap(function()
+        task.spawn(function()
             TweenService:Create(edge, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
             TweenService:Create(background, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
             TweenService:Create(bar, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
             TweenService:Create(waterText, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-        end)()
+        end)
 
         return WatermarkFunctions
     end
@@ -516,7 +516,7 @@ function library:InitNotifications(text, duration, callback)
         
         CreateTween("notification_load", 0.2)
 
-        text = text or "please wait."
+        text = text or "please task.wait."
         duration = duration or 5
         type = type or "notification"
         callback = callback or function() end
@@ -618,7 +618,7 @@ function library:InitNotifications(text, duration, callback)
         local NewSize = TextService:GetTextSize(notifText.Text, notifText.TextSize, notifText.Font, Vector2.new(math.huge, math.huge))
         CreateTween("notification_wait", duration, Enum.EasingStyle.Quad)
         local IsRunning = false
-        coroutine.wrap(function()
+        task.spawn(function()
             IsRunning = true
             TweenService:Create(edge, TweenTable["notification_load"], {BackgroundTransparency = 0}):Play()
             TweenService:Create(background, TweenTable["notification_load"], {BackgroundTransparency = 0}):Play()
@@ -626,9 +626,9 @@ function library:InitNotifications(text, duration, callback)
             TweenService:Create(edge, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 10, 0, 26)}):Play()
             TweenService:Create(background, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 8, 0, 24)}):Play()
             TweenService:Create(notifText, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 8, 0, 24)}):Play()
-            wait()
+            task.wait()
             TweenService:Create(bar, TweenTable["notification_wait"], {Size = UDim2.new(0, NewSize.X + 8, 0, 1)}):Play()
-            repeat wait() until bar.Size == UDim2.new(0, NewSize.X + 8, 0, 1)
+            repeat task.wait() until bar.Size == UDim2.new(0, NewSize.X + 8, 0, 1)
             IsRunning = false
             TweenService:Create(edge, TweenTable["notification_load"], {BackgroundTransparency = 1}):Play()
             TweenService:Create(background, TweenTable["notification_load"], {BackgroundTransparency = 1}):Play()
@@ -638,9 +638,9 @@ function library:InitNotifications(text, duration, callback)
             TweenService:Create(background, TweenTable["notification_load"], {Size = UDim2.new(0, 0, 0, 24)}):Play()
             TweenService:Create(notifText, TweenTable["notification_load"], {Size = UDim2.new(0, 0, 0, 24)}):Play()
             TweenService:Create(bar, TweenTable["notification_load"], {Size = UDim2.new(0, 0, 0, 1)}):Play()
-            wait(.2)
+            task.wait(.2)
             edge:Destroy()
-        end)()
+        end)
 
         CreateTween("notification_reset", 0.4)
         local NotificationFunctions = {}
@@ -654,9 +654,9 @@ function library:InitNotifications(text, duration, callback)
                 TweenService:Create(edge, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 10, 0, 26)}):Play()
                 TweenService:Create(background, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 8, 0, 24)}):Play()
                 TweenService:Create(notifText, TweenTable["notification_load"], {Size = UDim2.new(0, NewSize.X + 8, 0, 24)}):Play()
-                wait()
+                task.wait()
                 TweenService:Create(bar, TweenTable["notification_reset"], {Size = UDim2.new(0, 0, 0, 1)}):Play()
-                wait(.4)
+                task.wait(.4)
                 TweenService:Create(bar, TweenTable["notification_wait"], {Size = UDim2.new(0, NewSize.X + 8, 0, 1)}):Play()
             end
 
@@ -799,38 +799,38 @@ function library:Introduction()
 
     CreateTween("xsxRotation", 0)
     local MinusAmount = -16
-    coroutine.wrap(function()
-        while wait() do
+    task.spawn(function()
+        while task.wait() do
             MinusAmount = MinusAmount + 0.4
             TweenService:Create(xsxLogo, TweenTable["xsxRotation"], {Rotation = xsxLogo.Rotation - MinusAmount}):Play()
         end
-    end)()
+    end)
 
     TweenService:Create(edge, TweenTable["introduction"], {BackgroundTransparency = 0}):Play()
     TweenService:Create(background, TweenTable["introduction"], {BackgroundTransparency = 0}):Play()
-    wait(.2)
+    task.wait(.2)
     TweenService:Create(bar, TweenTable["introduction"], {Size = UDim2.new(0, 298, 0, 1)}):Play()
-    wait(.2)
+    task.wait(.2)
     TweenService:Create(xsx, TweenTable["introduction"], {TextTransparency = 0}):Play()
     TweenService:Create(text, TweenTable["introduction"], {TextTransparency = 0}):Play()
-    wait(.3)
+    task.wait(.3)
     TweenService:Create(xsxLogo, TweenTable["introduction"], {ImageTransparency = 0}):Play()
-    wait(2)
+    task.wait(2)
     TweenService:Create(xsxLogo, TweenTable["introduction"], {ImageTransparency = 1}):Play()
-    wait(.2)
+    task.wait(.2)
     TweenService:Create(hashLogo, TweenTable["introduction"], {ImageTransparency = 0}):Play()
-    wait(2)
+    task.wait(2)
     TweenService:Create(hashLogo, TweenTable["introduction"], {ImageTransparency = 1}):Play()
-    wait(.1)
+    task.wait(.1)
     TweenService:Create(text, TweenTable["introduction"], {TextTransparency = 1}):Play()
-    wait(.1)
+    task.wait(.1)
     TweenService:Create(xsx, TweenTable["introduction"], {TextTransparency = 1}):Play()
-    wait(.1)
+    task.wait(.1)
     TweenService:Create(bar, TweenTable["introduction"], {Size = UDim2.new(0, 0, 0, 1)}):Play()
-    wait(.1)
+    task.wait(.1)
     TweenService:Create(background, TweenTable["introduction"], {BackgroundTransparency = 1}):Play()
     TweenService:Create(edge, TweenTable["introduction"], {BackgroundTransparency = 1}):Play()
-    wait(.2)
+    task.wait(.2)
     introduction:Destroy()
 end
 
@@ -1824,21 +1824,28 @@ function library:Init(key)
                 ResizeKeybind()
                 UpdatePageSize()
     
-                local ChosenKey = default_t.Name
+                local ChosenKey = default_t ~= "None" and default_t.Name or nil
+				local Picking = false
     
                 keybind.MouseButton1Click:Connect(function()
-                    keybindButtonLabel.Text = ". . ."
+                    keybindButtonLabel.Text = "..."
+					Picking = true
+
                     local InputWait = UserInputService.InputBegan:wait()
                     if UserInputService.WindowFocused and InputWait.KeyCode.Name ~= "Unknown" then
                         local Result = Shortcuts[InputWait.KeyCode.Name] or InputWait.KeyCode.Name
                         keybindButtonLabel.Text = Result
                         ChosenKey = InputWait.KeyCode.Name
+
+						task.wait(0.5)
+						Picking = false
+					
                     end
                 end)
     
                 if UserInputService.WindowFocused then
                     UserInputService.InputBegan:Connect(function(c, p)
-                        if not p and default_t ~= "None" then
+                        if not p and not Picking then
                             if c.KeyCode.Name == ChosenKey then
                                 On = not On
                                 local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
@@ -3565,4 +3572,6 @@ function library:Init(key)
     end
     return TabLibrary
 end
+
+
 return library
