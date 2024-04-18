@@ -26,6 +26,7 @@ local Legacy = {
 		HealthColor = Color3.fromRGB(25, 255, 25),
 	},
 
+	MainThread = nil,
 	Characters = {},
 }
 
@@ -340,7 +341,16 @@ function Legacy:UpdateCharacters(PTable)
 	end
 end
 
-spawn(function()
+function Legacy:Unload()
+	for _, Character in self.Characters do
+		self:RemoveCharacter(Character)
+	end
+
+	cancel(self.MainThread)
+	getgenv().Legacy = nil
+end
+
+Legacy.MainThread = spawn(function()
 	while true do
 		wait(0.03)
 		Viewport = Camera.ViewportSize
