@@ -1,388 +1,518 @@
--- // credits to Blissful#4992 (sick) // --
+local coreGui = game:GetService("CoreGui")
+-- objects
+local camera = workspace.CurrentCamera
+local drawingUI = Instance.new("ScreenGui")
+drawingUI.Name = "Drawing"
+drawingUI.IgnoreGuiInset = true
+drawingUI.DisplayOrder = 0x7fffffff
+drawingUI.Parent = coreGui
+-- variables
+local drawingIndex = 0
+local uiStrokes = table.create(0)
+local baseDrawingObj = setmetatable({
+	Visible = true,
+	ZIndex = 0,
+	Transparency = 1,
+	Color = Color3.new(),
+	Remove = function(self)
+		setmetatable(self, nil)
+	end,
+	Destroy = function(self)
+		setmetatable(self, nil)
+	end
+}, {
+	__add = function(t1, t2)
+		local result = table.clone(t1)
 
-local Library = {};
-
-local Camera = workspace.CurrentCamera;
-local ToScreen = Camera.WorldToViewportPoint;
-
-local RS = game:GetService("RunService");
-
-local nVector3 = Vector3.new;
-local nVector2 = Vector2.new;
-local nDrawing = Drawing.new;
-local nColor   = Color3.fromRGB;
-local nCFrame = CFrame.new;
-local nCFAngles = CFrame.Angles;
-
-local rad = math.rad;
-local pi = math.pi;
-local round = math.round;
-
-local Insert = table.insert;
-local Char = string.char;
-local Random = math.random;
-local Seed = math.randomseed;
-local Time = os.time;
-
-local charset = {};
-
-for i = 48,  57 do Insert(charset, Char(i)) end;
-for i = 65,  90 do Insert(charset, Char(i)) end;
-for i = 97, 122 do Insert(charset, Char(i)) end;
-
-local function random_string(length)
-    Seed(Time());
-
-    if length > 0 then
-        return random_string(length - 1) .. charset[Random(1, #charset)];
-    else
-        return "";
-    end;
-end;
-
-local function checkCamView(pos)
-    return ((pos - Camera.CFrame.Position).Unit):Dot(Camera.CFrame.LookVector) > 0;
+		for index, value in t2 do
+			result[index] = value
+		end
+		return result
+	end
+})
+local drawingFontsEnum = {
+	[0] = Font.fromEnum(Enum.Font.Roboto),
+	[1] = Font.fromEnum(Enum.Font.Legacy),
+	[2] = Font.fromEnum(Enum.Font.SourceSans),
+	[3] = Font.fromEnum(Enum.Font.RobotoMono),
+}
+-- function
+local function getFontFromIndex(fontIndex: number): Font
+	return drawingFontsEnum[fontIndex]
 end
 
-function Library:New3DLine()
-    local _line = {
-        Visible      = false;
-        ZIndex       = 1;
-        Transparency = 1;
-        Color        = nColor(255, 255, 255);
-        Thickness    = 1;
-        From         = nVector3(0,0,0);
-        To           = nVector3(0,0,0);
-    };
-    local _defaults = _line;
-    _line.line = nDrawing("Line");
+local function convertTransparency(transparency: number): number
+	return math.clamp(1 - transparency, 0, 1)
+end
+-- main
+local DrawingLib = {}
+DrawingLib.Fonts = {
+	["UI"] = 0,
+	["System"] = 1,
+	["Plex"] = 2,
+	["Monospace"] = 3
+}
 
-    -- Update Step Function --
-    function _line:Update()
-        if not _line.Visible then
-            _line.line.Visible = false;
-        else
-            _line.line.Visible      = _line.Visible      or _defaults.Visible;
-            _line.line.ZIndex       = _line.ZIndex       or _defaults.ZIndex;
-            _line.line.Transparency = _line.Transparency or _defaults.Transparency;
-            _line.line.Color        = _line.Color        or _defaults.Color;
-            _line.line.Thickness    = _line.Thickness    or _defaults.Thickness;
+function DrawingLib.new(drawingType)
+	drawingIndex += 1
+	if drawingType == "Line" then
+		local lineObj = ({
+			From = Vector2.zero,
+			To = Vector2.zero,
+			Thickness = 1
+		} + baseDrawingObj)
 
-            local _from, v1 = ToScreen(Camera, _line.From);
-            local _to,   v2 = ToScreen(Camera, _line.To);
+		local lineFrame = Instance.new("Frame")
+		lineFrame.Name = drawingIndex
+		lineFrame.AnchorPoint = (Vector2.one * .5)
+		lineFrame.BorderSizePixel = 0
 
-            if (v1 and v2) or (checkCamView(_line.From) and checkCamView(_line.To)) then
-                _line.line.From = nVector2(_from.x, _from.y);
-                _line.line.To   = nVector2(_to.x, _to.y);
-            else
-                _line.line.Visible = false;
-            end;
-        end
-    end;
-    --------------------------
+		lineFrame.BackgroundColor3 = lineObj.Color
+		lineFrame.Visible = lineObj.Visible
+		lineFrame.ZIndex = lineObj.ZIndex
+		lineFrame.BackgroundTransparency = convertTransparency(lineObj.Transparency)
 
-    local step_Id = "3D_Line"..random_string(10);
-    RS:BindToRenderStep(step_Id, 1, _line.Update);
+		lineFrame.Size = UDim2.new()
 
-    -- Remove Line --
-    function _line:Remove()
-        RS:UnbindFromRenderStep(step_Id);
+		lineFrame.Parent = drawingUI
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(lineObj[index]) == "nil" then return end
 
-        self.line:Remove();
-    end;
-    -----------------
+				if index == "From" then
+					local direction = (lineObj.To - value)
+					local center = (lineObj.To + value) / 2
+					local distance = direction.Magnitude
+					local theta = math.deg(math.atan2(direction.Y, direction.X))
 
-    return _line;
-end;
+					lineFrame.Position = UDim2.fromOffset(center.X, center.Y)
+					lineFrame.Rotation = theta
+					lineFrame.Size = UDim2.fromOffset(distance, lineObj.Thickness)
+				elseif index == "To" then
+					local direction = (value - lineObj.From)
+					local center = (value + lineObj.From) / 2
+					local distance = direction.Magnitude
+					local theta = math.deg(math.atan2(direction.Y, direction.X))
 
-function Library:New3DCube()
-    local _cube = {
-        Visible      = false;
-        ZIndex       = 1;
-        Transparency = 1;
-        Color        = nColor(255, 255, 255);
-        Thickness    = 1;
-        Filled       = true;
-        
-        Position     = nVector3(0,0,0);
-        Size         = nVector3(0,0,0);
-        Rotation     = nVector3(0,0,0);
-    };
-    local _defaults  = _cube;
-    for f = 1, 6 do
-        _cube["face"..tostring(f)] = nDrawing("Quad");
-    end;
+					lineFrame.Position = UDim2.fromOffset(center.X, center.Y)
+					lineFrame.Rotation = theta
+					lineFrame.Size = UDim2.fromOffset(distance, lineObj.Thickness)
+				elseif index == "Thickness" then
+					local distance = (lineObj.To - lineObj.From).Magnitude
 
-    -- Update Step Function --
-    function _cube:Update()
-        if not _cube.Visible then
-            for f = 1, 6 do
-                _cube["face"..tostring(f)].Visible = false;
-            end;
-        else
-            for f = 1, 6 do
-                f = "face"..tostring(f)
-                _cube[f].Visible      = _cube.Visible      or _defaults.Visible;
-                _cube[f].ZIndex       = _cube.ZIndex       or _defaults.ZIndex;
-                _cube[f].Transparency = _cube.Transparency or _defaults.Transparency;
-                _cube[f].Color        = _cube.Color        or _defaults.Color;
-                _cube[f].Thickness    = _cube.Thickness    or _defaults.Thickness;
-                _cube[f].Filled       = _cube.Filled       or _defaults.Filled;
-            end;
+					lineFrame.Size = UDim2.fromOffset(distance, value)
+				elseif index == "Visible" then
+					lineFrame.Visible = value
+				elseif index == "ZIndex" then
+					lineFrame.ZIndex = value
+				elseif index == "Transparency" then
+					lineFrame.BackgroundTransparency = convertTransparency(value)
+				elseif index == "Color" then
+					lineFrame.BackgroundColor3 = value
+				end
+				lineObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						lineFrame:Destroy()
+						lineObj.Remove(self)
+						return lineObj:Remove()
+					end
+				end
+				return lineObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Text" then
+		local textObj = ({
+			Text = "",
+			Font = DrawingLib.Fonts.UI,
+			Size = 0,
+			Position = Vector2.zero,
+			Center = false,
+			Outline = false,
+			OutlineColor = Color3.new()
+		} + baseDrawingObj)
 
-            local rot = _cube.Rotation or _defaults.Rotation;
-            local pos = _cube.Position or _defaults.Position;
-            local _rotCFrame = nCFrame(pos) * nCFAngles(rad(rot.X), rad(rot.Y), rad(rot.Z));
+		local textLabel, uiStroke = Instance.new("TextLabel"), Instance.new("UIStroke")
+		textLabel.Name = drawingIndex
+		textLabel.AnchorPoint = (Vector2.one * .5)
+		textLabel.BorderSizePixel = 0
+		textLabel.BackgroundTransparency = 1
 
-            local _size = _cube.Size or _defaults.Size;
-            local _points = {
-                [1] = (_rotCFrame * nCFrame(_size.X, _size.Y, _size.Z)).p;
-                [2] = (_rotCFrame * nCFrame(_size.X, _size.Y, -_size.Z)).p;
-                [3] = (_rotCFrame * nCFrame(_size.X, -_size.Y, _size.Z)).p;
-                [4] = (_rotCFrame * nCFrame(_size.X, -_size.Y, -_size.Z)).p;
-                [5] = (_rotCFrame * nCFrame(-_size.X, _size.Y, _size.Z)).p;
-                [6] = (_rotCFrame * nCFrame(-_size.X, _size.Y, -_size.Z)).p;
-                [7] = (_rotCFrame * nCFrame(-_size.X, -_size.Y, _size.Z)).p;
-                [8] = (_rotCFrame * nCFrame(-_size.X, -_size.Y, -_size.Z)).p;
-            };
+		textLabel.Visible = textObj.Visible
+		textLabel.TextColor3 = textObj.Color
+		textLabel.TextTransparency = convertTransparency(textObj.Transparency)
+		textLabel.ZIndex = textObj.ZIndex
 
-            local _vis = true;
+		textLabel.FontFace = getFontFromIndex(textObj.Font)
+		textLabel.TextSize = textObj.Size
 
-            for p = 1, #_points do
-                local _p, v = ToScreen(Camera, _points[p]);
-                local _stored = _points[p];
-                _points[p] = nVector2(_p.x, _p.y);
+		textLabel:GetPropertyChangedSignal("TextBounds"):Connect(function()
+			local textBounds = textLabel.TextBounds
+			local offset = textBounds / 2
 
-                if not v and not checkCamView(_stored) then 
-                    _vis = false;
-                    break;
-                end;
-            end;
+			textLabel.Size = UDim2.fromOffset(textBounds.X, textBounds.Y)
+			textLabel.Position = UDim2.fromOffset(textObj.Position.X + (if not textObj.Center then offset.X else 0), textObj.Position.Y + offset.Y)
+		end)
 
-            if _vis then
-                _cube.face1.PointA = _points[1]; -- Side
-                _cube.face1.PointB = _points[2];
-                _cube.face1.PointC = _points[4];
-                _cube.face1.PointD = _points[3];
+		uiStroke.Thickness = 1
+		uiStroke.Enabled = textObj.Outline
+		uiStroke.Color = textObj.Color
 
-                _cube.face2.PointA = _points[5]; -- Side
-                _cube.face2.PointB = _points[6];
-                _cube.face2.PointC = _points[8];
-                _cube.face2.PointD = _points[7];
+		textLabel.Parent, uiStroke.Parent = drawingUI, textLabel
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(textObj[index]) == "nil" then return end
 
-                _cube.face3.PointA = _points[1]; -- Side
-                _cube.face3.PointB = _points[5];
-                _cube.face3.PointC = _points[7];
-                _cube.face3.PointD = _points[3];
+				if index == "Text" then
+					textLabel.Text = value
+				elseif index == "Font" then
+					value = math.clamp(value, 0, 3)
+					textLabel.FontFace = getFontFromIndex(value)
+				elseif index == "Size" then
+					textLabel.TextSize = value
+				elseif index == "Position" then
+					local offset = textLabel.TextBounds / 2
 
-                _cube.face4.PointA = _points[2]; -- Side
-                _cube.face4.PointB = _points[4];
-                _cube.face4.PointC = _points[8];
-                _cube.face4.PointD = _points[6];
+					textLabel.Position = UDim2.fromOffset(value.X + (if not textObj.Center then offset.X else 0), value.Y + offset.Y)
+				elseif index == "Center" then
+					local position = (
+						if value then
+							camera.ViewportSize / 2
+							else
+							textObj.Position
+					)
 
-                _cube.face5.PointA = _points[1]; -- Top
-                _cube.face5.PointB = _points[2];
-                _cube.face5.PointC = _points[6];
-                _cube.face5.PointD = _points[5];
+					textLabel.Position = UDim2.fromOffset(position.X, position.Y)
+				elseif index == "Outline" then
+					uiStroke.Enabled = value
+				elseif index == "OutlineColor" then
+					uiStroke.Color = value
+				elseif index == "Visible" then
+					textLabel.Visible = value
+				elseif index == "ZIndex" then
+					textLabel.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
 
-                _cube.face6.PointA = _points[3]; -- Bottom
-                _cube.face6.PointB = _points[4];
-                _cube.face6.PointC = _points[8];
-                _cube.face6.PointD = _points[7];
-            else
-                for f = 1, 6 do
-                    _cube["face"..tostring(f)].Visible = false;
-                end;
-            end;
-        end;
-    end;
-    --------------------------
+					textLabel.TextTransparency = transparency
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					textLabel.TextColor3 = value
+				end
+				textObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						textLabel:Destroy()
+						textObj.Remove(self)
+						return textObj:Remove()
+					end
+				elseif index == "TextBounds" then
+					return textLabel.TextBounds
+				end
+				return textObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Circle" then
+		local circleObj = ({
+			Radius = 150,
+			Position = Vector2.zero,
+			Thickness = .7,
+			Filled = false
+		} + baseDrawingObj)
 
-    local step_Id = "3D_Cube"..random_string(10);
-    RS:BindToRenderStep(step_Id, 1, _cube.Update);
+		local circleFrame, uiCorner, uiStroke = Instance.new("Frame"), Instance.new("UICorner"), Instance.new("UIStroke")
+		circleFrame.Name = drawingIndex
+		circleFrame.AnchorPoint = (Vector2.one * .5)
+		circleFrame.BorderSizePixel = 0
 
-    -- Remove Cube --
-    function _cube:Remove()
-        RS:UnbindFromRenderStep(step_Id);
+		circleFrame.BackgroundTransparency = (if circleObj.Filled then convertTransparency(circleObj.Transparency) else 1)
+		circleFrame.BackgroundColor3 = circleObj.Color
+		circleFrame.Visible = circleObj.Visible
+		circleFrame.ZIndex = circleObj.ZIndex
 
-        for f = 1, 6 do
-            self["face"..tostring(f)]:Remove();
-        end;
-    end;
-    -----------------
+		uiCorner.CornerRadius = UDim.new(1, 0)
+		circleFrame.Size = UDim2.fromOffset(circleObj.Radius, circleObj.Radius)
 
-    return _cube;
-end;
+		uiStroke.Thickness = circleObj.Thickness
+		uiStroke.Enabled = not circleObj.Filled
+		uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-function Library:New3DSquare()
-    local _square = {
-        Visible      = false;
-        ZIndex       = 1;
-        Transparency = 1;
-        Color        = nColor(255, 255, 255);
-        Thickness    = 1;
-        Filled       = true;
-        
-        Position     = nVector3(0,0,0);
-        Size         = nVector2(0,0);
-        Rotation     = nVector3(0,0,0);
-    }
-    local _defaults = _square;
-    _square.square = nDrawing("Quad");
+		circleFrame.Parent, uiCorner.Parent, uiStroke.Parent = drawingUI, circleFrame, circleFrame
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(circleObj[index]) == "nil" then return end
 
-    -- Update Step Function --
-    function _square:Update()
-        if not _square.Visible then 
-            _square.square.Visible = false;
-        else
-            _square.square.Visible      = _square.Visible      or _defaults.Visible;
-            _square.square.ZIndex       = _square.ZIndex       or _defaults.ZIndex;
-            _square.square.Transparency = _square.Transparency or _defaults.Transparency;
-            _square.square.Color        = _square.Color        or _defaults.Color;
-            _square.square.Thickness    = _square.Thickness    or _defaults.Thickness;
-            _square.square.Filled       = _square.Filled       or _defaults.Filled;
+				if index == "Radius" then
+					local radius = value * 2
+					circleFrame.Size = UDim2.fromOffset(radius, radius)
+				elseif index == "Position" then
+					circleFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Thickness" then
+					value = math.clamp(value, .6, 0x7fffffff)
+					uiStroke.Thickness = value
+				elseif index == "Filled" then
+					circleFrame.BackgroundTransparency = (if value then convertTransparency(circleObj.Transparency) else 1)
+					uiStroke.Enabled = not value
+				elseif index == "Visible" then
+					circleFrame.Visible = value
+				elseif index == "ZIndex" then
+					circleFrame.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
 
-            local rot = _square.Rotation or _defaults.Rotation;
-            local pos = _square.Position or _defaults.Position;
-            local _rotCFrame = nCFrame(pos) * nCFAngles(rad(rot.X), rad(rot.Y), rad(rot.Z));
+					circleFrame.BackgroundTransparency = (if circleObj.Filled then transparency else 1)
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					circleFrame.BackgroundColor3 = value
+					uiStroke.Color = value
+				end
+				circleObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						circleFrame:Destroy()
+						circleObj.Remove(self)
+						return circleObj:Remove()
+					end
+				end
+				return circleObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Square" then
+		local squareObj = ({
+			Size = Vector2.zero,
+			Position = Vector2.zero,
+			Thickness = .7,
+			Filled = false
+		} + baseDrawingObj)
 
-            local _size = _square.Size or _defaults.Size;
-            local _points = {
-                [1] = (_rotCFrame * nCFrame(_size.X, 0, _size.Y)).p;
-                [2] = (_rotCFrame * nCFrame(_size.X, 0, -_size.Y)).p;
-                [3] = (_rotCFrame * nCFrame(-_size.X, 0, _size.Y)).p;
-                [4] = (_rotCFrame * nCFrame(-_size.X, 0, -_size.Y)).p;
-            };
+		local squareFrame, uiStroke = Instance.new("Frame"), Instance.new("UIStroke")
+		squareFrame.Name = drawingIndex
+		squareFrame.BorderSizePixel = 0
 
-            local _vis = true;
+		squareFrame.BackgroundTransparency = (if squareObj.Filled then convertTransparency(squareObj.Transparency) else 1)
+		squareFrame.ZIndex = squareObj.ZIndex
+		squareFrame.BackgroundColor3 = squareObj.Color
+		squareFrame.Visible = squareObj.Visible
 
-            for p = 1, #_points do
-                local _p, v = ToScreen(Camera, _points[p]);
-                local _stored = _points[p];
-                _points[p] = nVector2(_p.x, _p.y);
+		uiStroke.Thickness = squareObj.Thickness
+		uiStroke.Enabled = not squareObj.Filled
+		uiStroke.LineJoinMode = Enum.LineJoinMode.Miter
 
-                if not v and not checkCamView(_stored) then 
-                    _vis = false;
-                    break;
-                end;
-            end;
+		squareFrame.Parent, uiStroke.Parent = drawingUI, squareFrame
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(squareObj[index]) == "nil" then return end
 
-            if _vis then
-                _square.square.PointA = _points[1];
-                _square.square.PointB = _points[2];
-                _square.square.PointC = _points[4];
-                _square.square.PointD = _points[3];
-            else
-                _square.square.Visible = false;
-            end;
-        end;
-    end;
-    --------------------------
+				if index == "Size" then
+					squareFrame.Size = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Position" then
+					squareFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Thickness" then
+					value = math.clamp(value, 0.6, 0x7fffffff)
+					uiStroke.Thickness = value
+				elseif index == "Filled" then
+					squareFrame.BackgroundTransparency = (if value then convertTransparency(squareObj.Transparency) else 1)
+					uiStroke.Enabled = not value
+				elseif index == "Visible" then
+					squareFrame.Visible = value
+				elseif index == "ZIndex" then
+					squareFrame.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
 
-    local step_Id = "3D_Square"..random_string(10);
-    RS:BindToRenderStep(step_Id, 1, _square.Update);
+					squareFrame.BackgroundTransparency = (if squareObj.Filled then transparency else 1)
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					uiStroke.Color = value
+					squareFrame.BackgroundColor3 = value
+				end
+				squareObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						squareFrame:Destroy()
+						squareObj.Remove(self)
+						return squareObj:Remove()
+					end
+				end
+				return squareObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Image" then
+		local imageObj = ({
+			Data = "",
+			DataURL = "rbxassetid://0",
+			Size = Vector2.zero,
+			Position = Vector2.zero
+		} + baseDrawingObj)
 
-    -- Remove Square --
-    function _square:Remove()
-        RS:UnbindFromRenderStep(step_Id);
+		local imageFrame = Instance.new("ImageLabel")
+		imageFrame.Name = drawingIndex
+		imageFrame.BorderSizePixel = 0
+		imageFrame.ScaleType = Enum.ScaleType.Stretch
+		imageFrame.BackgroundTransparency = 1
 
-        _square.square:Remove();
-    end;
-    -----------------
+		imageFrame.Visible = imageObj.Visible
+		imageFrame.ZIndex = imageObj.ZIndex
+		imageFrame.ImageTransparency = convertTransparency(imageObj.Transparency)
+		imageFrame.ImageColor3 = imageObj.Color
 
-    return _square;
-end;
+		imageFrame.Parent = drawingUI
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(imageObj[index]) == "nil" then return end
 
-function Library:New3DCircle()
-    local _circle = {
-        Visible      = false;
-        ZIndex       = 1;
-        Transparency = 1;
-        Color        = nColor(255, 255, 255);
-        Thickness    = 1;
-        
-        Position     = nVector3(0,0,0);
-        Radius       = 10;
-        Rotation     = nVector2(0,0);
-    };
-    local _defaults = _circle;
-    local _lines = {};
+				if index == "Data" then
+					-- later
+				elseif index == "DataURL" then -- temporary property
+					imageFrame.Image = value
+				elseif index == "Size" then
+					imageFrame.Size = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Position" then
+					imageFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Visible" then
+					imageFrame.Visible = value
+				elseif index == "ZIndex" then
+					imageFrame.ZIndex = value
+				elseif index == "Transparency" then
+					imageFrame.ImageTransparency = convertTransparency(value)
+				elseif index == "Color" then
+					imageFrame.ImageColor3 = value
+				end
+				imageObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						imageFrame:Destroy()
+						imageObj.Remove(self)
+						return imageObj:Remove()
+					end
+				elseif index == "Data" then
+					return nil -- TODO: add error here
+				end
+				return imageObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Quad" then
+		local quadObj = ({
+			PointA = Vector2.zero,
+			PointB = Vector2.zero,
+			PointC = Vector2.zero,
+			PointD = Vector3.zero,
+			Thickness = 1,
+			Filled = false
+		} + baseDrawingObj)
 
-    local function makeNewLines(r)
-        for l = 1, #_lines do
-            _lines[l]:Remove();
-        end;
+		local _linePoints = table.create(0)
+		_linePoints.A = DrawingLib.new("Line")
+		_linePoints.B = DrawingLib.new("Line")
+		_linePoints.C = DrawingLib.new("Line")
+		_linePoints.D = DrawingLib.new("Line")
+		return setmetatable(table.create(0), {
+			__newindex = function(_, index, value)
+				if typeof(quadObj[index]) == "nil" then return end
 
-        _lines = {};
-        
-        for l = 1, 1.5*r*pi do
-            _lines[l] = nDrawing("Line");
-        end;
-    end;
+				if index == "PointA" then
+					_linePoints.A.From = value
+					_linePoints.B.To = value
+				elseif index == "PointB" then
+					_linePoints.B.From = value
+					_linePoints.C.To = value
+				elseif index == "PointC" then
+					_linePoints.C.From = value
+					_linePoints.D.To = value
+				elseif index == "PointD" then
+					_linePoints.D.From = value
+					_linePoints.A.To = value
+				elseif (index == "Thickness" or index == "Visible" or index == "Color" or index == "ZIndex") then
+					for _, linePoint in _linePoints do
+						linePoint[index] = value
+					end
+				elseif index == "Filled" then
+					-- later
+				end
+				quadObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
 
-    -- Update Step Function --
-    local previousR = _circle.Radius or _defaults.Radius;
-    makeNewLines(previousR);
+						quadObj.Remove(self)
+						return quadObj:Remove()
+					end
+				end
+				return quadObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	elseif drawingType == "Triangle" then
+		local triangleObj = ({
+			PointA = Vector2.zero,
+			PointB = Vector2.zero,
+			PointC = Vector2.zero,
+			Thickness = 1,
+			Filled = false
+		} + baseDrawingObj)
 
-    function _circle:Update()
-        local rot = _circle.Rotation or _defaults.Rotation;
-        local pos = _circle.Position or _defaults.Position;
-        local _rotCFrame = nCFrame(pos) * nCFAngles(rad(rot.X), 0, rad(rot.Y));
+		local _linePoints = table.create(0)
+		_linePoints.A = DrawingLib.new("Line")
+		_linePoints.B = DrawingLib.new("Line")
+		_linePoints.C = DrawingLib.new("Line")
+		return setmetatable(table.create(0), {
+			__tostring = function() return "Drawing" end,
+			__newindex = function(_, index, value)
+				if typeof(triangleObj[index]) == "nil" then return end
 
-        local _radius = _circle.Radius or _defaults.Radius;
-        if previousR ~= _radius then makeNewLines(_radius) end;
+				if index == "PointA" then
+					_linePoints.A.From = value
+					_linePoints.B.To = value
+				elseif index == "PointB" then
+					_linePoints.B.From = value
+					_linePoints.C.To = value
+				elseif index == "PointC" then
+					_linePoints.C.From = value
+					_linePoints.A.To = value
+				elseif (index == "Thickness" or index == "Visible" or index == "Color" or index == "ZIndex") then
+					for _, linePoint in _linePoints do
+						linePoint[index] = value
+					end
+				elseif index == "Filled" then
+					-- later
+				end
+				triangleObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
 
-        local _increm = 360/#_lines;
+						triangleObj.Remove(self)
+						return triangleObj:Remove()
+					end
+				end
+				return triangleObj[index]
+			end,
+			__tostring = function() return "Drawing" end
+		})
+	end
+end
 
-        if not _circle.Visible then 
-            for ln = 1, #_lines do
-                _lines[ln].Visible = false;
-            end;
-        else
-            for l = 1, #_lines do
-                if _lines[l] and rawget(_lines[l], "__OBJECT_EXISTS") then
-                    _lines[l].Visible      = _circle.Visible      or _defaults.Visible;
-                    _lines[l].ZIndex       = _circle.ZIndex       or _defaults.ZIndex;
-                    _lines[l].Transparency = _circle.Transparency or _defaults.Transparency;
-                    _lines[l].Color        = _circle.Color        or _defaults.Color;
-                    _lines[l].Thickness    = _circle.Thickness    or _defaults.Thickness;
-
-                    local p1 = (_rotCFrame * nCFrame(0, 0, -_radius)).p;
-                    local _previousPosition, v1 = ToScreen(Camera, p1);
-
-                    _rotCFrame = _rotCFrame * nCFAngles(0, rad(_increm), 0);
-
-                    local p2 = (_rotCFrame * nCFrame(0, 0, -_radius)).p;
-                    local _nextPosition, v2 = ToScreen(Camera, p2);
-
-                    if (v1 and v2) or (checkCamView(p1) and checkCamView(p2)) then
-                        _lines[l].From = nVector2(_previousPosition.x, _previousPosition.y);
-                        _lines[l].To = nVector2(_nextPosition.x, _nextPosition.y);
-                    else
-                        _lines[l].Visible = false;
-                    end;
-                end;
-            end;
-        end;
-
-        previousR = _circle.Radius or _defaults.Radius;
-    end;
-    --------------------------
-
-    local step_Id = "3D_Circle"..random_string(10);
-    RS:BindToRenderStep(step_Id, 1, _circle.Update);
-
-    -- Remove Circle --
-    function _circle:Remove()
-        RS:UnbindFromRenderStep(step_Id)
-
-        for ln = 1, #_lines do
-            _lines[ln]:Remove();
-        end;
-    end;
-    -----------------
-
-    return _circle;
-end;
-
-return Library;
+return DrawingLib
