@@ -1829,7 +1829,7 @@ function Library:Window(options)
 				PlayerListTab["20"]["TextColor3"] = Color3.fromRGB(216, 216, 216);
 				PlayerListTab["20"]["Size"] = UDim2.new(1, 0, 1, 0);
 				PlayerListTab["20"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-				PlayerListTab["20"]["Text"] = "Player List - 32 Players";
+				PlayerListTab["20"]["Text"] = "List - 32 Players";
 				PlayerListTab["20"]["Name"] = [[Title]];
 				PlayerListTab["20"]["BackgroundTransparency"] = 1;
 
@@ -2020,7 +2020,7 @@ function Library:Window(options)
 						Item["29"]["TextColor3"] = Color3.fromRGB(255, 0, 255);
 						Item["29"]["Size"] = UDim2.new(0.33000001311302185, 0, 1, 0);
 						Item["29"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-						Item["29"]["Text"] = [[Local Player]];
+						Item["29"]["Text"] = [[Client]];
 						Item["29"]["Name"] = [[Flags]];
 						Item["29"]["BackgroundTransparency"] = 1;
 						Item["29"]["Position"] = UDim2.new(0.6600000262260437, 0, 0, 0);
@@ -2154,9 +2154,9 @@ function Library:Window(options)
 				
 				function PlayerListTab:PlayerNumber()
 					if #players:GetPlayers() == 1 then
-						PlayerListTab["20"].Text = string.format("Player List - %s Player", #players:GetPlayers())
+						PlayerListTab["20"].Text = string.format("List - %s Player", #players:GetPlayers())
 					else
-						PlayerListTab["20"].Text = string.format("Player List - %s Players", #players:GetPlayers())
+						PlayerListTab["20"].Text = string.format("List - %s Players", #players:GetPlayers())
 					end
 				end
 			end
