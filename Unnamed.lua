@@ -68,6 +68,7 @@ local CursorCon = nil
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ScreenGui.DisplayOrder = 3
 ScreenGui.Parent = CoreGui
 
 table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
