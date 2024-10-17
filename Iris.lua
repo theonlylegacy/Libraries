@@ -4,6 +4,18 @@ Module.Parent = ReplicatedStorage
 
 local OldRequire = nil
 OldRequire = hookfunction(require, function(Script)
+    if Script.Name == "config" then
+        local config = loadstring(Script.Source)()
+
+        for i, v in config do
+            if v.TextFont then
+                config[i].TextFont = Font.fromEnum(Enum.Font.Arial)
+            end
+        end
+        
+        return config
+    end
+
     return loadstring(Script.Source)()
 end)
 
